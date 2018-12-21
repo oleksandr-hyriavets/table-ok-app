@@ -5,6 +5,8 @@
         <th
           v-for="(field, index) in fields"
           :key="`field-${index}`"
+          :class="{sortAsc: orderBy == field && orderDir == 'asc', sortDesc: orderBy == field && orderDir == 'desc'}"
+          @click="sortBy(field)"
         >
           <!-- :class="{sortAsc: orderBy == field && orderDir == 'asc', sortDesc: orderBy == field && orderDir == 'desc'}" -->
           <!-- @click="sort(field)" -->
@@ -42,6 +44,14 @@ export default {
     searchText: {
       type: String,
       default: ''
+    },
+    orderBy: {
+      type: String,
+      default: 'Id'
+    },
+    orderDir: {
+      type: String,
+      default: 'asc'
     }
   },
   methods: {
@@ -50,19 +60,24 @@ export default {
         return data
       }
 
-      // todo: add regex to handle lower/uppercase
+      const regex = new RegExp(this.searchText, 'ig')
+      const searched = String(data).match(regex)
+
       const replaced = String(data).replace(
-        this.searchText,
-        `<span class="highlight">${this.searchText}</span>`
+        regex,
+        `<span class="highlight">${searched}</span>`
       )
 
       return replaced
+    },
+    sortBy (field) {
+      this.$emit('change-sort-field', field)
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
+<style>
 table {
   border-collapse: collapse;
   width: 100%;
