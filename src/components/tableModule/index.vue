@@ -2,12 +2,10 @@
   <div class="table-wrapper">
     <div class="line">
       <ShowRecords
-        :records-per-page="perPage"
-        @change="changePerPageAmount"
+        v-model="localPerPage"
       />
       <SearchRecords
-        :search-string="searchText"
-        @change="changeSearchString"
+        v-model="localSearchText"
       />
     </div>
     <br>
@@ -29,7 +27,7 @@
       <InfoComponent
         v-if="hasRecords"
         :records-amount="recordsAmount"
-        :current-page="currentPage"
+        :current-page="localCurrentPage"
         :per-page="perPage"
         :has-search-text="hasSearchText"
         :total-records="totalRecords"
@@ -53,7 +51,11 @@ import InfoComponent from '@/components/tableModule/InfoComponent'
 
 import { pathOr } from 'ramda'
 
-const DEFAULT_PER_PAGE_RECORDS_AMOUNT = 5
+import {
+  DEFAULT_PER_PAGE_RECORDS_AMOUNT,
+  DEFAULT_CURRENT_PAGE,
+  DEFAULT_FIELD_TO_SORT
+} from '@/utils/config'
 
 export default {
   name: 'TableModule',
@@ -68,8 +70,8 @@ export default {
     ...mapState({
       searchText: pathOr('', ['table', 'searchText']),
       perPage: pathOr(DEFAULT_PER_PAGE_RECORDS_AMOUNT, ['table', 'perPage']),
-      currentPage: pathOr(1, ['table', 'currentPage']),
-      orderBy: pathOr('Id', ['table', 'orderBy']),
+      currentPage: pathOr(DEFAULT_CURRENT_PAGE, ['table', 'currentPage']),
+      orderBy: pathOr(DEFAULT_FIELD_TO_SORT, ['table', 'orderBy']),
       orderDir: pathOr('asc', ['table', 'orderDir'])
     }),
     ...mapGetters([
@@ -87,6 +89,26 @@ export default {
         this.updateCurrentPage(value)
       }
     },
+    localPerPage: {
+      get () {
+        return this.perPage
+      },
+      set (value) {
+        this.updatePerPageRecordsAmount(value)
+      }
+    },
+    localSearchText: {
+      get () {
+        return this.searchText
+      },
+      set (value) {
+        if (this.localCurrentPage !== 1) {
+          this.updateCurrentPage(1)
+        }
+        
+        this.updateSearchText(value)
+      }
+    },
     hasRecords () {
       return Boolean(this.recordsAmount)
     },
@@ -102,16 +124,6 @@ export default {
       'setOrderBy',
       'toggleOrderDir'
     ]),
-    changePerPageAmount (newPerPageAmount) {
-      this.updatePerPageRecordsAmount(newPerPageAmount)
-    },
-    changeSearchString (newSearchString) {
-      if (this.currenPage !== 1) {
-        this.updateCurrentPage(1)
-      }
-
-      this.updateSearchText(newSearchString)
-    },
     changeSortField (newFiled) {
       this.setOrderBy(newFiled)
       this.toggleOrderDir()

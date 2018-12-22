@@ -47,7 +47,7 @@ export default {
     },
     orderBy: {
       type: String,
-      default: 'Id'
+      default: 'ID'
     },
     orderDir: {
       type: String,

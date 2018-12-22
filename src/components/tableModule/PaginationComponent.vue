@@ -6,7 +6,7 @@
         :key="index"
         :class="['pgnt__item', { 'highlight': isCurrentPage(page) }]"
       >
-        <button :disabled="page === '..'" @click="changePage(page)">
+        <button :disabled="isDotsButton(page)" @click="changePage(page)">
           {{ page }}
         </button>
       </li>
@@ -18,6 +18,7 @@
 import { range } from 'ramda'
 
 const MAX_VISIBLE_PAGES = 5
+const DOTS_BUTTON = '..'
 
 export default {
   name: 'PaginationComponent',
@@ -37,11 +38,11 @@ export default {
         return range(1, this.totalPages + 1)
       } else {
         if (this.value < MAX_VISIBLE_PAGES) {
-          return [...range(1, MAX_VISIBLE_PAGES + 1), '..', this.totalPages]
+          return [...range(1, MAX_VISIBLE_PAGES + 1), DOTS_BUTTON, this.totalPages]
         } else if (this.totalPages - MAX_VISIBLE_PAGES + 1 < this.value) {
-          return [1, '..', ...range(this.totalPages - MAX_VISIBLE_PAGES + 1, this.totalPages + 1)]
+          return [1, DOTS_BUTTON, ...range(this.totalPages - MAX_VISIBLE_PAGES + 1, this.totalPages + 1)]
         } else {
-          return [1, '..', this.value - 1, this.value, this.value + 1, '..', this.totalPages]
+          return [1, DOTS_BUTTON, this.value - 1, this.value, this.value + 1, DOTS_BUTTON, this.totalPages]
         }
       }
     }
@@ -52,6 +53,9 @@ export default {
     },
     isCurrentPage (page) {
       return this.value === page
+    },
+    isDotsButton (page) {
+      return page === DOTS_BUTTON
     }
   }
 }

@@ -1,0 +1,3 @@
+export const DEFAULT_PER_PAGE_RECORDS_AMOUNT = 5
+export const DEFAULT_CURRENT_PAGE = 1
+export const DEFAULT_FIELD_TO_SORT = 'ID'

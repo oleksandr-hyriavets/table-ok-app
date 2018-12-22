@@ -2,6 +2,12 @@ import data from '@/data'
 
 import { compose, head, keys, propOr, sort, toLower, join, values, prop, includes, filter, length, ascend, descend } from 'ramda'
 
+import {
+  DEFAULT_PER_PAGE_RECORDS_AMOUNT,
+  DEFAULT_CURRENT_PAGE,
+  DEFAULT_FIELD_TO_SORT
+} from '@/utils/config'
+
 const types = {
   UPDATE_SEARCH_TEXT: 'UPDATE_SEARCH_TEXT',
   UPDATE_PER_PAGE_RECORDS_AMOUNT: 'UPDATE_PER_PAGE_RECORDS_AMOUNT',
@@ -18,12 +24,12 @@ const isIncludesSearchText = searchText => compose(
 )
 
 const state = () => ({
-  tableData: data || [],
-  currentPage: 1,
-  perPage: 5,
+  tableData: data,
+  currentPage: DEFAULT_CURRENT_PAGE,
+  perPage: DEFAULT_PER_PAGE_RECORDS_AMOUNT,
   searchText: '',
   orderDir: 'asc',
-  orderBy: 'ID'
+  orderBy: DEFAULT_FIELD_TO_SORT
 })
 
 const getters = {
@@ -31,9 +37,7 @@ const getters = {
     const sortType = orderDir === 'asc' ? ascend : descend
     const sortTypeByOrder = sortType(prop(orderBy))
 
-    const filteredData = compose(
-      filter(isIncludesSearchText(searchText)),
-    )(tableData)
+    const filteredData = filter(isIncludesSearchText(searchText), tableData)
 
     return sort(sortTypeByOrder, filteredData)
   },

@@ -1,6 +1,6 @@
 <template>
   <div class="search-items">
-    Search: <input :value="searchString" type="search" @input="emitEventWithNewValue" />
+    Search: <input v-model="searchText" type="search" />
   </div>
 </template>
 
@@ -8,16 +8,19 @@
 export default {
   name: 'SearchRecords',
   props: {
-    searchString: {
+    value: {
       type: String,
       default: ''
     }
   },
-  methods: {
-    emitEventWithNewValue (event) {
-      const newSearchString = event.target.value
-
-      this.$emit('change', newSearchString)
+  computed: {
+    searchText: {
+      get () {
+        return this.value
+      },
+      set (newValue) {
+        this.$emit('input', newValue)
+      }
     }
   }
 }
