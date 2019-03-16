@@ -3,14 +3,12 @@
     <thead>
       <tr>
         <th
-          v-for="(field, index) in fields"
-          :key="`field-${index}`"
-          :class="{sortAsc: orderBy == field && orderDir == 'asc', sortDesc: orderBy == field && orderDir == 'desc'}"
-          @click="sortBy(field)"
+          v-for="(filedName, filedKey) in fields"
+          :key="`field-${filedKey}`"
+          :class="getTableFieldClass(filedKey)"
+          @click="sortBy(filedKey)"
         >
-          <!-- :class="{sortAsc: orderBy == field && orderDir == 'asc', sortDesc: orderBy == field && orderDir == 'desc'}" -->
-          <!-- @click="sort(field)" -->
-          {{ field }}
+          {{ filedName }}
         </th>
       </tr>
     </thead>
@@ -23,18 +21,20 @@
           v-for="(data, key) in row"
           :key="`date-${key}`"
           v-html="shownData(data)"
-        ></td>
+        />
       </tr>
     </tbody>
   </table>
 </template>
 
 <script>
+import { ORDER_DIR, DEFAULT_FIELD_TO_SORT } from "@/utils/config";
+
 export default {
-  name: 'TableComponent',
+  name: "TableComponent",
   props: {
     fields: {
-      type: Array,
+      type: Object,
       required: true
     },
     rows: {
@@ -43,38 +43,46 @@ export default {
     },
     searchText: {
       type: String,
-      default: ''
+      default: ""
     },
     orderBy: {
       type: String,
-      default: 'ID'
+      default: DEFAULT_FIELD_TO_SORT
     },
     orderDir: {
       type: String,
-      default: 'asc'
+      default: ORDER_DIR.ASC.SLUG
     }
   },
   methods: {
-    shownData (data) {
+    shownData(data) {
       if (!this.searchText) {
-        return data
+        return data;
       }
 
-      const regex = new RegExp(this.searchText, 'ig')
-      const searched = String(data).match(regex)
+      const regex = new RegExp(this.searchText, "ig");
+      const searched = String(data).match(regex);
 
       const replaced = String(data).replace(
         regex,
         `<span class="highlight">${searched}</span>`
-      )
+      );
 
-      return replaced
+      return replaced;
     },
-    sortBy (field) {
-      this.$emit('change-sort-field', field)
+    sortBy(field) {
+      this.$emit("change-sort-field", field);
+    },
+    getTableFieldClass(field) {
+      if (this.orderBy !== field) return "";
+
+      return {
+        sortAsc: this.orderDir === ORDER_DIR.ASC.SLUG,
+        sortDesc: this.orderDir === ORDER_DIR.DESC.SLUG
+      };
     }
   }
-}
+};
 </script>
 
 <style>
@@ -92,13 +100,13 @@ th {
   text-align: left;
   border: 1px solid #ddd;
   border-bottom: 3px solid #ddd;
-  font-family: 'Glyphicons Halflings';
+  font-family: "Glyphicons Halflings";
   position: relative;
   cursor: pointer;
 }
 
 th::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 12px;
   right: 8px;
@@ -108,12 +116,12 @@ th::after {
 }
 
 th.sortAsc::after {
-  content: '\25b2';
+  content: "\25b2";
   opacity: 0.8;
 }
 
 th.sortDesc::after {
-  content: '\25bc';
+  content: "\25bc";
   opacity: 0.8;
 }
 

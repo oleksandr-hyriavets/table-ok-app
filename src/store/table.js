@@ -1,99 +1,132 @@
-import data from '@/data'
+import data from "@/data";
 
-import { compose, head, keys, propOr, sort, toLower, join, values, prop, includes, filter, length, ascend, descend } from 'ramda'
+import {
+  prop,
+  propOr,
+  compose,
+  includes,
+  toLower,
+  join,
+  flatten,
+  map,
+  values,
+  length,
+  __,
+  divide,
+  filter,
+  slice,
+  sort
+} from "ramda";
 
 import {
   DEFAULT_PER_PAGE_RECORDS_AMOUNT,
   DEFAULT_CURRENT_PAGE,
-  DEFAULT_FIELD_TO_SORT
-} from '@/utils/config'
+  DEFAULT_FIELD_TO_SORT,
+  ORDER_DIR
+} from "@/utils/config";
 
-const types = {
-  UPDATE_SEARCH_TEXT: 'UPDATE_SEARCH_TEXT',
-  UPDATE_PER_PAGE_RECORDS_AMOUNT: 'UPDATE_PER_PAGE_RECORDS_AMOUNT',
-  UPDATE_CURRENT_PAGE: 'UPDATE_CURRENT_PAGE',
-  SET_ORDER_BY: 'SET_ORDER_BY',
-  TOGGLE_ORDER_DIR: 'TOGGLE_ORDER_DIR'
-}
+const getTitlesObj = prop("titles");
+const getTableItems = prop("items");
 
-const isIncludesSearchText = searchText => compose(
-  includes(toLower(searchText)),
-  toLower,
-  join('~'),
-  values
-)
+const isIncludesSearchText = searchText =>
+  compose(
+    includes(toLower(searchText)),
+    toLower,
+    join("~"),
+    flatten,
+    values
+  );
 
-const state = () => ({
-  tableData: data,
+const state = {
+  titles: getTitlesObj(data),
+  tableItems: getTableItems(data),
   currentPage: DEFAULT_CURRENT_PAGE,
   perPage: DEFAULT_PER_PAGE_RECORDS_AMOUNT,
-  searchText: '',
-  orderDir: 'asc',
+  searchText: "",
+  orderDir: ORDER_DIR.ASC.SLUG,
   orderBy: DEFAULT_FIELD_TO_SORT
-})
+};
 
 const getters = {
-  filteredData: ({ searchText, tableData, orderBy, orderDir }) => {
-    const sortType = orderDir === 'asc' ? ascend : descend
-    const sortTypeByOrder = sortType(prop(orderBy))
+  filteredItems: ({ searchText, tableItems, orderBy, orderDir }) => {
+    const sortFn =
+      orderDir === ORDER_DIR.ASC.SLUG ? ORDER_DIR.ASC.FN : ORDER_DIR.DESC.FN;
+    const sortByOrderFn = sortFn(prop(orderBy));
 
-    const filteredData = filter(isIncludesSearchText(searchText), tableData)
+    const filteredItems = filter(isIncludesSearchText(searchText), tableItems);
 
-    return sort(sortTypeByOrder, filteredData)
+    return sort(sortByOrderFn, filteredItems);
   },
-  fields: compose(keys, head, propOr([], 'tableData')),
-  rows: ({ currentPage, perPage }, { filteredData }) => filteredData.slice(
-    (currentPage - 1) * perPage,
-    currentPage * perPage
-  ),
-  totalPages: ({ perPage }, { filteredData }) => Math.ceil(length(filteredData) / perPage),
-  recordsAmount: (__, { filteredData }) => length(filteredData),
-  totalRecords: compose(length, propOr([], 'tableData'))
-}
+  fields: state => state.titles,
+  rows: ({ currentPage, perPage }, { filteredItems }) =>
+    slice((currentPage - 1) * perPage, currentPage * perPage, filteredItems),
+  totalPages: ({ perPage }, { filteredItems }) =>
+    compose(
+      Math.ceil,
+      divide(__, perPage),
+      length
+    )(filteredItems),
+  recordsAmount: (__, { filteredItems }) => length(filteredItems),
+  totalRecords: compose(
+    length,
+    propOr([], "tableItems")
+  )
+};
+
+const types = {
+  UPDATE_SEARCH_TEXT: "UPDATE_SEARCH_TEXT",
+  UPDATE_PER_PAGE_RECORDS_AMOUNT: "UPDATE_PER_PAGE_RECORDS_AMOUNT",
+  UPDATE_CURRENT_PAGE: "UPDATE_CURRENT_PAGE",
+  SET_ORDER_BY: "SET_ORDER_BY",
+  TOGGLE_ORDER_DIR: "TOGGLE_ORDER_DIR"
+};
 
 const actions = {
-  updateSearchText ({ commit }, newSearchText) {
-    commit(types.UPDATE_SEARCH_TEXT, newSearchText)
+  updateSearchText({ commit }, newSearchText) {
+    commit(types.UPDATE_SEARCH_TEXT, newSearchText);
   },
 
-  updatePerPageRecordsAmount ({ commit }, newPerPageAmount) {
-    commit(types.UPDATE_PER_PAGE_RECORDS_AMOUNT, newPerPageAmount)
+  updatePerPageRecordsAmount({ commit }, newPerPageAmount) {
+    commit(types.UPDATE_PER_PAGE_RECORDS_AMOUNT, newPerPageAmount);
   },
 
-  updateCurrentPage ({ commit }, newCurrentPage) {
-    commit(types.UPDATE_CURRENT_PAGE, newCurrentPage)
+  updateCurrentPage({ commit }, newCurrentPage) {
+    commit(types.UPDATE_CURRENT_PAGE, newCurrentPage);
   },
 
-  setOrderBy ({ commit }, newOrderBy) {
-    commit(types.SET_ORDER_BY, newOrderBy)
+  setOrderBy({ commit }, newOrderBy) {
+    commit(types.SET_ORDER_BY, newOrderBy);
   },
 
-  toggleOrderDir ({ commit }) {
-    commit(types.TOGGLE_ORDER_DIR)
+  toggleOrderDir({ commit }) {
+    commit(types.TOGGLE_ORDER_DIR);
   }
-}
+};
 
 const mutations = {
-  [types.UPDATE_SEARCH_TEXT] (state, newSearchText) {
-    state.searchText = newSearchText
+  [types.UPDATE_SEARCH_TEXT](state, newSearchText) {
+    state.searchText = newSearchText;
   },
-  [types.UPDATE_PER_PAGE_RECORDS_AMOUNT] (state, newPerPageAmount) {
-    state.perPage = newPerPageAmount
+  [types.UPDATE_PER_PAGE_RECORDS_AMOUNT](state, newPerPageAmount) {
+    state.perPage = newPerPageAmount;
   },
-  [types.UPDATE_CURRENT_PAGE] (state, newCurrentPage) {
-    state.currentPage = newCurrentPage
+  [types.UPDATE_CURRENT_PAGE](state, newCurrentPage) {
+    state.currentPage = newCurrentPage;
   },
-  [types.SET_ORDER_BY] (state, newOrderBy) {
-    state.orderBy = newOrderBy
+  [types.SET_ORDER_BY](state, newOrderBy) {
+    state.orderBy = newOrderBy;
   },
-  [types.TOGGLE_ORDER_DIR] (state) {
-    state.orderDir = state.orderDir === 'asc' ? 'desc' : 'asc'
+  [types.TOGGLE_ORDER_DIR](state) {
+    state.orderDir =
+      state.orderDir === ORDER_DIR.ASC.SLUG
+        ? ORDER_DIR.DESC.SLUG
+        : ORDER_DIR.ASC.SLUG;
   }
-}
+};
 
 export default {
   state,
   getters,
   actions,
   mutations
-}
+};
