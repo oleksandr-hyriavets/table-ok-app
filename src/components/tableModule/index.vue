@@ -18,7 +18,11 @@
         :order-dir="orderDir"
         :order-by="orderBy"
         @change-sort-field="changeSortField"
-      />
+      >
+        <template v-slot:actions="{ row }">
+          <button @click="onEdit(row)">Edit</button>
+        </template>
+      </TableComponent>
       <p v-else class="no-data">
         no data :)
       </p>
@@ -127,6 +131,9 @@ export default {
     changeSortField(newFiled) {
       this.setOrderBy(newFiled);
       this.toggleOrderDir();
+    },
+    onEdit(row) {
+      console.log(row);
     }
   }
 };

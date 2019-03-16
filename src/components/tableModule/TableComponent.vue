@@ -10,6 +10,7 @@
         >
           {{ filedName }}
         </th>
+        <th v-if="$slots.actions" />
       </tr>
     </thead>
     <tbody>
@@ -22,6 +23,7 @@
           :key="`date-${key}`"
           v-html="shownData(data)"
         />
+        <slot name="actions" :row="row" />
       </tr>
     </tbody>
   </table>
